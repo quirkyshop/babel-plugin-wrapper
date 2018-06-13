@@ -1,7 +1,7 @@
 {
   "name": "babel-plugin-noform",
   "version": "1.0.0",
-  "description": "transform demand components for noform",
+  "description": "demand components helper for noform wrapper",
   "main": "lib/index.js",
   "scripts": {
     "build": "rm -rf lib && ./node_modules/.bin/babel src --out-dir lib --ignore __tests__",
