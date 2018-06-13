@@ -1,0 +1,22 @@
+{
+  "name": "babel-plugin-noform",
+  "version": "1.0.0",
+  "description": "transform demand components for noform",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "rm -rf lib && ./node_modules/.bin/babel src --out-dir lib --ignore __tests__",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.34",
+    "@babel/core": "^7.0.0-beta.34",
+    "babel-core": "^6.26.3"
+  },
+  "dependencies": {
+    "@babel/core": "^7.0.0-beta.51",
+    "@babel/helper-module-imports": "^7.0.0-beta.51"
+  }
+}
