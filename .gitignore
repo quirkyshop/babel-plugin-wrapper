@@ -9,3 +9,4 @@ example/
 yarn.lock
 .yarnclean
 webpack.config.js
+dist
