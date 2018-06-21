@@ -1,0 +1,11 @@
+.idea
+tmp
+node_modules
+coverage
+lib
+*.log
+*.log.*
+example/
+yarn.lock
+.yarnclean
+webpack.config.js
