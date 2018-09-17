@@ -90,7 +90,9 @@ module.exports = function(babel) {
             let sourceKind = '';
             let kindResult = '';
 
+            let deps = ['Button', 'Input', 'Modal'];
             if (source.startsWith(repeaterPrefix)) {
+                deps = deps.concat(['Checkbox', 'Radio']);
                 sourceKind = source.split(repeaterPrefix)[1];
                 kindResult = kindResultFormat('repeater', sourceKind);
             } else {
@@ -98,7 +100,7 @@ module.exports = function(babel) {
                 kindResult = kindResultFormat('dialog', sourceKind);
             }
             
-            ['Button', 'Input', 'Modal'].forEach((localName) => {
+            deps.forEach((localName) => {
                 target.push(localName);
                 if (!runtimeData[source]) runtimeData[source] = {};
                 runtimeData[source][localName] = { parent: path };
