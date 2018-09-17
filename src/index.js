@@ -250,6 +250,8 @@ module.exports = function(babel) {
   function handleAdd (file, runtimeData, opts = {}) {    
     const prefix = 'lib';
     const wrapperLibNames = Object.keys(runtimeData);
+    const hasDialog = wrapperLibNames.find(item => item.indexOf('Dialog') !== -1);
+    const hasRepeater = wrapperLibNames.find(item => item.indexOf('repeater') !== -1);
     let registeredComponent = [];
     wrapperLibNames.forEach(name => {
         const libDeps = runtimeData[name];
@@ -258,6 +260,8 @@ module.exports = function(babel) {
             resultLibName = name.split(wrapperPrefix)[1];
         } else if (name.startsWith(dialogPrefix)) {
             resultLibName = name.split(dialogPrefix)[1];
+        } else if (name.startsWith(repeaterPrefix)) {
+            resultLibName = name.split(repeaterPrefix)[1];
         }
 
         // addDefault天然去重
@@ -273,7 +277,11 @@ module.exports = function(babel) {
 
         // eg: import _noform_lib_wrapper_antd from "noform/lib/wrapper/antd";
         addDefault(file.path, name, { nameHint: wrapperFormat(name) })
-    });
+        if (hasRepeater && !hasDialog && name.indexOf('repeater') !== -1) {
+            const ftdialog = name.replace('repeater', 'dialog');
+            addDefault(file.path, ftdialog, { nameHint: wrapperFormat(ftdialog) })
+        }
+    });    
   }
 
   return {
