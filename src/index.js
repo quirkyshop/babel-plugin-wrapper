@@ -188,16 +188,18 @@ module.exports = function(babel) {
         const wrapperWeightKey = dialogWeightkey.replace('dialog', 'wrapper');
         const { varName, params } = dialogData;
 
+        const wrapperVarName = varName.toLowerCase().replace('dialog', 'wrapper');
+
         if (!weigthMap.wrapper) {
             wrapperData[wrapperWeightKey] = {
-                varName: varName.replace('dialog', 'wrapper'),
+                varName: wrapperVarName,
                 params,
                 refs: params.map((refName) => {
-                    return { varName: refName, source: libNameFormat(refName) };
+                    return { varName: refName, source: wrapperVarName };
                 })
             };
         } else {            
-            const { params } = wrapperData[wrapperWeightKey];
+            const { params, varName: wrapperOriginVarName } = wrapperData[wrapperWeightKey];
             let newParams = [].concat(params);
             if (params.indexOf('Modal') === -1) newParams.push('Modal');
 
@@ -210,7 +212,7 @@ module.exports = function(babel) {
                 ...wrapperData[wrapperWeightKey],
                 params: newParams,
                 refs: newParams.map((refName) => {
-                    return { varName: refName, source: libNameFormat(refName) };
+                    return { varName: refName, source: wrapperOriginVarName };
                 })
             };
         }
