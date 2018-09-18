@@ -90,9 +90,8 @@ module.exports = function(babel) {
             let sourceKind = '';
             let kindResult = '';
 
-            let deps = ['Button', 'Input', 'Modal'];
+            const deps = ['Button', 'Input', 'Modal'];
             if (source.startsWith(repeaterPrefix)) {
-                deps = deps.concat(['Checkbox', 'Radio']);
                 sourceKind = source.split(repeaterPrefix)[1];
                 kindResult = kindResultFormat('repeater', sourceKind);
             } else {
@@ -152,7 +151,6 @@ module.exports = function(babel) {
 
     let dialogName = '';
     let hasDialog = false;
-    let sortedKeys = [];
 
     Object.keys(weigthMap).forEach((weightKey) => {
         Object.keys(wrapperData).forEach((wrapperKey) => {
@@ -161,10 +159,61 @@ module.exports = function(babel) {
                     hasDialog = true;
                     dialogName = wrapperData[wrapperKey].varName;
                 }
-                sortedKeys.push(wrapperKey)
+
+                if (!weigthMap[weightKey]) {
+                    weigthMap[weightKey] = wrapperKey;
+                }
             }
         });
     });
+
+    if (weigthMap.repeater) {
+        const repeaterWeightkey = weigthMap.repeater;
+        const repeaterData = wrapperData[repeaterWeightkey];
+        const dialogWeightKey = repeaterWeightkey.replace('repeater', 'dialog');
+        const wrapperWeightKey = repeaterWeightkey.replace('repeater', 'wrapper');
+        const { varName, params } = repeaterData;
+        if (!weigthMap.dialog) {
+            wrapperData[dialogWeightKey] = {
+                varName: varName.replace('repeater', 'dialog'),
+                params,
+            };
+        }
+
+        if (!weigthMap.wrapper) {
+            wrapperData[wrapperWeightKey] = {
+                varName: varName.replace('repeater', 'wrapper'),
+                params,
+                refs: params.map((refName) => {
+                    return { varName: refName, source: libNameFormat(refName) };
+                })
+            };
+        }
+    } else if (weigthMap.dialog) {
+        const dialogWeightkey = weigthMap.dialog;
+        const dialogData = wrapperData[dialogWeightkey];
+        const wrapperWeightKey = dialogWeightkey.replace('dialog', 'wrapper');
+        const { varName, params } = dialogData;
+
+        if (!weigthMap.wrapper) {
+            wrapperData[wrapperWeightKey] = {
+                varName: varName.replace('dialog', 'wrapper'),
+                params,
+                refs: params.map((refName) => {
+                    return { varName: refName, source: libNameFormat(refName) };
+                })
+            };
+        }
+    }
+
+    let sortedKeys = [];
+    Object.keys(weigthMap).forEach((weightKey) => {
+        Object.keys(wrapperData).forEach((wrapperKey) => {
+            if (wrapperKey.indexOf(weightKey) !== -1) {
+                sortedKeys.push(wrapperKey);
+            }
+        });
+    });;
 
     sortedKeys.forEach((wrapperKey) => {
         const currentWrapper = wrapperData[wrapperKey];
@@ -174,10 +223,14 @@ module.exports = function(babel) {
         
         if (params && Array.isArray(params)) {
             params.forEach((paramName) => {
+                let parmLibName = libNameFormat(paramName);
+                if (wrapperKey.indexOf('dialog') !== -1 || wrapperKey.indexOf('repeater') !== -1) {
+                    parmLibName = paramName;
+                }
                 objParams.push(
                     t.objectProperty(
                         t.identifier(paramName),
-                        t.identifier(libNameFormat(paramName)),
+                        t.identifier(parmLibName),
                     )
                 );
             });
@@ -201,30 +254,21 @@ module.exports = function(babel) {
         let dialogRef = [];
         if (wrapperKey.startsWith(repeaterPrefix)) {
             let dialogRefName = '';
+
             if (!hasDialog) {
-                const ftDialogKey = wrapperKey.replace('repeater', 'dialog');
                 const sourceKind = wrapperKey.split(repeaterPrefix)[1];
                 dialogRefName = kindResultFormat('dialog', sourceKind);
-
-                dialogRef.push(t.variableDeclaration('const', [
-                    t.variableDeclarator(
-                        t.identifier(dialogRefName), // _wrapper_result_antd
-                        t.callExpression(
-                            t.identifier(wrapperFormat(ftDialogKey)), // noform/lib/wrapper/antd
-                            [t.objectExpression(objParams)]
-                        )
-                    )
-                ]));                
             } else {
                 dialogRefName = dialogName;
             }
 
-            objParams = [].concat(objParams, (
-                t.objectProperty(
-                    t.identifier('Dialog'),
-                    t.identifier(dialogRefName),
-                )
-            ));
+            objParams = objParams.filter(item => item.key.name !== 'Modal');
+            objParams = [].concat(objParams, [
+                (t.objectProperty(t.identifier('Dialog'), t.identifier(dialogRefName))),
+                (t.objectProperty(t.identifier('Checkbox'), t.identifier('Checkbox'))),
+                (t.objectProperty(t.identifier('Radio'), t.identifier('Radio'))),
+                ]
+            );
         }
 
         const insertNodes = [].concat(
@@ -250,7 +294,8 @@ module.exports = function(babel) {
   function handleAdd (file, runtimeData, opts = {}) {    
     const prefix = 'lib';
     const wrapperLibNames = Object.keys(runtimeData);
-    const hasDialog = wrapperLibNames.find(item => item.indexOf('Dialog') !== -1);
+    const hasWrapper = wrapperLibNames.find(item => item.indexOf('wrapper') !== -1); 
+    const hasDialog = wrapperLibNames.find(item => item.indexOf('dialog') !== -1);
     const hasRepeater = wrapperLibNames.find(item => item.indexOf('repeater') !== -1);
     let registeredComponent = [];
     wrapperLibNames.forEach(name => {
@@ -280,6 +325,11 @@ module.exports = function(babel) {
         if (hasRepeater && !hasDialog && name.indexOf('repeater') !== -1) {
             const ftdialog = name.replace('repeater', 'dialog');
             addDefault(file.path, ftdialog, { nameHint: wrapperFormat(ftdialog) })
+        }
+
+        if (hasRepeater && !hasWrapper && name.indexOf('repeater') !== -1) {
+            const ftWrapper = name.replace('repeater', 'wrapper');
+            addDefault(file.path, ftWrapper, { nameHint: wrapperFormat(ftWrapper) })
         }
     });    
   }
