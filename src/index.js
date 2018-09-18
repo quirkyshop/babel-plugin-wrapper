@@ -178,18 +178,11 @@ module.exports = function(babel) {
                 varName: varName.replace('repeater', 'dialog'),
                 params,
             };
+            weigthMap.dialog = dialogWeightKey;
         }
-
-        if (!weigthMap.wrapper) {
-            wrapperData[wrapperWeightKey] = {
-                varName: varName.replace('repeater', 'wrapper'),
-                params,
-                refs: params.map((refName) => {
-                    return { varName: refName, source: libNameFormat(refName) };
-                })
-            };
-        }
-    } else if (weigthMap.dialog) {
+    }
+    
+    if (weigthMap.dialog) {
         const dialogWeightkey = weigthMap.dialog;
         const dialogData = wrapperData[dialogWeightkey];
         const wrapperWeightKey = dialogWeightkey.replace('dialog', 'wrapper');
@@ -200,6 +193,23 @@ module.exports = function(babel) {
                 varName: varName.replace('dialog', 'wrapper'),
                 params,
                 refs: params.map((refName) => {
+                    return { varName: refName, source: libNameFormat(refName) };
+                })
+            };
+        } else {            
+            const { params } = wrapperData[wrapperWeightKey];
+            let newParams = [].concat(params);
+            if (params.indexOf('Modal') === -1) newParams.push('Modal');
+
+            if (weigthMap.repeater) {
+                if (params.indexOf('Checkbox') === -1) newParams.push('Checkbox');
+                if (params.indexOf('Radio') === -1) newParams.push('Radio');
+            }
+
+            wrapperData[wrapperWeightKey] = {
+                ...wrapperData[wrapperWeightKey],
+                params: newParams,
+                refs: newParams.map((refName) => {
                     return { varName: refName, source: libNameFormat(refName) };
                 })
             };
