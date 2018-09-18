@@ -142,7 +142,7 @@ module.exports = function(babel) {
     }
   }
 
-  function handleWrapper (file, wrapperData, opts = {}) {    
+  function handleWrapper (file, wrapperData, runtimeData, opts = {}) {    
     let weigthMap = {
         repeater: null,        
         dialog: null,
@@ -204,8 +204,15 @@ module.exports = function(babel) {
             if (params.indexOf('Modal') === -1) newParams.push('Modal');
 
             if (weigthMap.repeater) {
-                if (params.indexOf('Checkbox') === -1) newParams.push('Checkbox');
-                if (params.indexOf('Radio') === -1) newParams.push('Radio');
+                if (params.indexOf('Checkbox') === -1) {
+                    newParams.push('Checkbox');
+                    runtimeData[wrapperWeightKey]['Checkbox'] = {};
+                }
+                if (params.indexOf('Radio') === -1) {
+                    newParams.push('Radio');
+                    runtimeData[wrapperWeightKey]['Radio'] = {};
+
+                }
             }
 
             wrapperData[wrapperWeightKey] = {
@@ -359,7 +366,7 @@ module.exports = function(babel) {
           wrapperData: this.wrapperData
         });
 
-        handleWrapper(data.file, this.wrapperData, data.opts)
+        handleWrapper(data.file, this.wrapperData, this.runtimeData, data.opts)
         handleAdd(data.file, this.runtimeData, data.opts);
       }
     },
