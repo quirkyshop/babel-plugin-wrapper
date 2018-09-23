@@ -23,6 +23,7 @@ function kindResultFormat (kind, name) {
     return '_' + kind + '_result_' + name;
 }
 
+let hasSelectify = false;
 module.exports = function(babel) {
   var t = babel.types;
 
@@ -88,7 +89,16 @@ module.exports = function(babel) {
         } else if (source.startsWith(repeaterPrefix) || source.startsWith(dialogPrefix)) {
             // eg. noform/dist/dialog/antd
             let sourceKind = '';
-            let kindResult = '';
+            let kindResult = '';            
+            if (Array.isArray(specifiersNode)) {
+                specifiersNode.forEach((item) => {
+                  if (t.isImportSpecifier(item)) {
+                    if (item.local.name === 'Selectify') {
+                        hasSelectify = true;
+                    }
+                  }
+                })
+            }
 
             const deps = ['Button', 'Input', 'Modal'];
             if (source.startsWith(repeaterPrefix)) {
@@ -204,11 +214,15 @@ module.exports = function(babel) {
             if (params.indexOf('Modal') === -1) newParams.push('Modal');
 
             if (weigthMap.repeater) {
-                if (params.indexOf('Checkbox') === -1) {
+                if (!runtimeData[wrapperWeightKey]) {
+                    runtimeData[wrapperWeightKey] = {};
+                }
+
+                if (hasSelectify && params.indexOf('Checkbox') === -1) {
                     newParams.push('Checkbox');
                     runtimeData[wrapperWeightKey]['Checkbox'] = {};
                 }
-                if (params.indexOf('Radio') === -1) {
+                if (hasSelectify && params.indexOf('Radio') === -1) {
                     newParams.push('Radio');
                     runtimeData[wrapperWeightKey]['Radio'] = {};
 
@@ -282,12 +296,12 @@ module.exports = function(babel) {
             }
 
             objParams = objParams.filter(item => item.key.name !== 'Modal');
-            objParams = [].concat(objParams, [
-                (t.objectProperty(t.identifier('Dialog'), t.identifier(dialogRefName))),
-                (t.objectProperty(t.identifier('Checkbox'), t.identifier('Checkbox'))),
-                (t.objectProperty(t.identifier('Radio'), t.identifier('Radio'))),
-                ]
-            );
+            objParams.push((t.objectProperty(t.identifier('Dialog'), t.identifier(dialogRefName))));
+
+            if (hasSelectify) {
+                objParams.push((t.objectProperty(t.identifier('Checkbox'), t.identifier('Checkbox'))));
+                objParams.push((t.objectProperty(t.identifier('Radio'), t.identifier('Radio'))));
+            }
         }
 
         const insertNodes = [].concat(
