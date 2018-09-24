@@ -211,7 +211,10 @@ module.exports = function(babel) {
         } else {            
             const { params, varName: wrapperOriginVarName } = wrapperData[wrapperWeightKey];
             let newParams = [].concat(params);
-            if (params.indexOf('Modal') === -1) newParams.push('Modal');
+            if (params.indexOf('Modal') === -1) {
+                newParams.push('Modal');
+                newParams.push('Button');
+            }
 
             if (weigthMap.repeater) {
                 if (!runtimeData[wrapperWeightKey]) {
