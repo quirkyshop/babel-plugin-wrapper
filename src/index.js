@@ -213,13 +213,16 @@ module.exports = function(babel) {
             let newParams = [].concat(params);
             if (newParams.indexOf('Button') == -1) newParams.push('Button');
             if (newParams.indexOf('Modal') == -1) newParams.push('Modal');
-            if (newParams.indexOf('Input') == -1) newParams.push('Input');
 
             if (weigthMap.repeater) {
                 if (!runtimeData[wrapperWeightKey]) {
                     runtimeData[wrapperWeightKey] = {};
                 }
 
+                if (params.indexOf('Input') === -1) {
+                    newParams.push('Input');
+                    runtimeData[wrapperWeightKey]['Input'] = {};
+                }
                 if (hasSelectify && params.indexOf('Checkbox') === -1) {
                     newParams.push('Checkbox');
                     runtimeData[wrapperWeightKey]['Checkbox'] = {};
