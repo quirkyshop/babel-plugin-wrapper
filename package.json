@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-wrapper",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "demand components helper for noform wrapper",
   "main": "lib/index.js",
   "scripts": {
